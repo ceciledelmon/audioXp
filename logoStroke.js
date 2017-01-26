@@ -2,10 +2,9 @@ class LogoStroke {
   constructor(opts) {
 
     this.color = opts.color || 0xFFE07A
-    this.logoStroke = this.drawStroke()
     this.logoStrokeContainer = new PIXI.Container()
 
-    this.logoStrokeContainer.addChild(this.logoStroke)
+    this.logoStrokeContainer.addChild(this.drawStroke())
 
     this.position = vec2.create()
     this.velocity = vec2.create()
@@ -24,7 +23,6 @@ class LogoStroke {
 
     this.rotation = opts.rotation || 0
 
-    stage.addChild(this.logoStrokeContainer)
   }
   update(count, funkyMode){
     //stage.removeChild(this.logoStrokeContainer)

@@ -6,13 +6,12 @@ INITIALISATION CANVAS
 
 //Create the renderer
 var renderer = PIXI.autoDetectRenderer(
-  window.innerWidth - 20, window.innerHeight - 30,
+  window.innerWidth, window.innerHeight,
   {antialias: false, transparent: false, resolution: 1}
 );
 renderer.view.style.position = "absolute";
 renderer.view.style.display = "block";
 renderer.autoResize = true;
-renderer.view.style.border = "1px solid white";
 renderer.backgroundColor = 0xFFFFFF;
 
 //Add the canvas to the HTML document
@@ -67,7 +66,6 @@ logoContainer.position.x = stageWidth/2;
 logoContainer.position.y = stageHeight/2;
 logoContainer.pivot.x = 208;
 logoContainer.pivot.y = 136
-
 stage.addChild(logoContainer)
 
 var strokes = []
@@ -90,20 +88,10 @@ loadSound()
 INITIALISATION EVENTS
 ////////////////////////
 */
-// musicChoice.addEventListener('click', (event) => {
-//   if (!playing) {
-//     var index = musicChoice.getAttribute('index')
-//     loadSound(index)
-//     playing = true;
-//     document.getElementById('musicList').style.display = 'none';
-//   }
-// })
-
 document.addEventListener('keydown', (event) => {
   const keyCode = event.keyCode;
 
   if (keyCode==32) {
-    console.log('pressed');
     funkyMode = !funkyMode
     if (funkyMode)
     {
@@ -130,7 +118,6 @@ function loadSound() {
   request.responseType = 'arraybuffer';
 
   request.onload = function () {
-
       contexteAudio.decodeAudioData(request.response, function (buffer) {
         // Tell the AudioBufferSourceNode to use this AudioBuffer.
         audioBuffer = buffer;
@@ -152,7 +139,6 @@ function loadSound() {
         filterSound.connect(contexteAudio.destination);
         // play sound
         audioSource.start()
-
         draw()
       })
   }
@@ -165,17 +151,13 @@ function draw(){
   // analyseur.fftSize = 128
   // var frequencyData = new Uint8Array(analyseur.fftSize);
   // analyseur.getByteTimeDomainData(frequencyData);
-
   analyseur.getByteFrequencyData(frequencyData);
-
   var frequencies = 0
   var average = 0
-
   for (var i = 0; i < frequencyData.length; i++) {
     frequencies += frequencyData[i]
     average = frequencies/frequencyData.length
   }
-
   //movement of the base
   logoContainer.scale.x = 0.5*(Math.log(average)-3)
   logoContainer.scale.y = 0.5*(Math.log(average)-3)
@@ -184,7 +166,7 @@ function draw(){
     filterSound.frequency.value = Math.sin(count)*50+50;
   }else{
     logoContainer.rotation = 0
-    filterSound.frequency.value = 50000;
+    filterSound.frequency.value = 24000;
   }
 
   //recuperation of the average values
@@ -200,7 +182,6 @@ function draw(){
       createStroke(0x80FFd2)
     }
   }
-
   if (result2>80) {
     if (funkyMode) {
       var color = getRandomColor()
@@ -209,7 +190,6 @@ function draw(){
       createStroke(0xFFE07A)
     }
   }
-
   if (result3>7) {
     if (funkyMode) {
       var color = getRandomColor()
@@ -226,9 +206,10 @@ function draw(){
       var stroke = strokes[j]
       stroke.update(count, funkyMode)
       stroke.draw()
-      if (stroke.logoStrokeContainer.scale.x>50) {
+      if (stroke.logoStrokeContainer.scale.x> document.getElementsByClassName('range')[0].value) {
         count = 0
         stage.removeChild(stroke.logoStrokeContainer)
+        stroke.logoStrokeContainer.destroy()
         strokes.splice(strokes.indexOf(stroke),1)
       }
     }
@@ -236,16 +217,13 @@ function draw(){
   }
 
   if (funkyMode) {
-
     var matrix = filter.matrix;
-
     matrix[1] = Math.sin(count) * 3;
     matrix[2] = Math.cos(count);
     matrix[3] = Math.cos(count) * 1.5;
     matrix[4] = Math.sin(count / 3) * 2;
     matrix[5] = Math.sin(count / 2);
     matrix[6] = Math.sin(count / 4);
-
   }
 
     //render all stage
@@ -264,6 +242,7 @@ function getRangeAverage(frequencies, min, max){
   return average/turn
 }
 
+var newStroke = {};
 function createStroke(color){
   //create stroke when the bit drop
   var options = {
@@ -280,7 +259,11 @@ function createStroke(color){
     color: color,
     rotation: logoContainer.rotation
   }
-  strokes.push( new LogoStroke(options))
+  newStroke = new LogoStroke(options);
+  stage.removeChild(logoContainer);
+  stage.addChild(newStroke.logoStrokeContainer)
+  stage.addChild(logoContainer);
+  strokes.push(newStroke)
 }
 
 function getRandomColor() {
